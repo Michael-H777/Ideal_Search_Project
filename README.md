@@ -25,7 +25,7 @@ This function accepts an query as a input and return it's corresponding embeddin
 
     First, use jieba to segment the query and generate a lit of words. 
     Second, use jieba, jiagu and pkuseg to determine that part of speech for each word 
-    Only those that are noun and Chinese are kept (majority vote is utlized)
+    Only those that are noun and Chinese are kept (majority vote is utilized)
     Third, query tencentAPI for each word and calculate a mid-point of all embeddings 
     Finally, the average embedding is returned 
 
