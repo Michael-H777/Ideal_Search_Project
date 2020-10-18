@@ -1,4 +1,3 @@
-.gitignore
 api_keys.txt
 items.csv
 .ipynb_checkpoints/*
