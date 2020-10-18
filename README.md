@@ -17,7 +17,7 @@ required API access:
 
 ---
 
-## generate_embedding.py 
+## python_scripts/generate_embedding.py 
 
     generate_vector(query)
     
@@ -29,7 +29,7 @@ This function accepts an query as a input and return it's corresponding embeddin
     Third, query tencentAPI for each word and calculate a mid-point of all embeddings 
     Finally, the average embedding is returned 
 
-## get_closest_titles.py 
+## python_scripts/get_closest_titles.py 
 
     search_title(query, return_size=20)
 
