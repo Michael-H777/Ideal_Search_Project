@@ -112,7 +112,6 @@ def main():
             query = redis_api.blpop(redis_queue, 0)[1]
             pool.submit(generate_vector, query)
         
-    
 
 if __name__ == '__main__':
     main() 
