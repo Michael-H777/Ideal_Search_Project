@@ -74,7 +74,7 @@ def generate_vector(query):
     '''
     time_stamp, _, query = query.partition('_')
     identifier, _, query = query.partition('_')
-    
+        
     temp_result = []
     # some words cannot get segmented, need more time to investigate specific cases 
     try:
@@ -111,8 +111,8 @@ def generate_vector(query):
     
     query_vector = list(map(lambda item: round( sum(item)/len(item) , 5), zip(*vector_list)))
     
-    redis_api.rpush(args.output_queue, f'{time_stamp}_{identifier}_{query_vector}')
-    print(f'processed {time_stamp}_{identifier}_{query}, result pushed to redis')
+    redis_api.rpush(args.output_queue, f'{time_stamp}_{identifier}_{str(query_vector)}')
+    print(f'processed {time_stamp}_{identifier}_{query}, value pushed into Redis')
     return None 
 
 
@@ -124,7 +124,7 @@ def main():
         while True:
             query = redis_api.blpop(args.input_queue, 0)[1]
             pool.submit(generate_vector, query)
-        
+       
 
 if __name__ == '__main__':
     main() 
