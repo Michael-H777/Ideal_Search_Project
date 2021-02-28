@@ -1,8 +1,10 @@
+# word processing 
 import jiagu 
 import jieba 
 import pkuseg 
 import jieba.posseg as jieba_seg
 
+# tencent API 
 import json
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
@@ -10,6 +12,16 @@ from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
 from tencentcloud.nlp.v20190408 import nlp_client, models
 
+# redis API 
+import redis 
+
+# multithreading 
+from concurrent.futures import ThreadPoolExecutor 
+
+pku_seg = pkuseg.pkuseg(postag=True)
+
+redis_api = redis.StrictRedis(host = 'localhost', port = 6379, db = 0, decode_responses = True)
+redis_queue = 'task:prodcons:queue'
 
 class word_obj:
     
@@ -39,23 +51,24 @@ def get_tencent_client():
 
 
 def generate_vector(query):
+    global pku_seg, redis_api, redis_queue
+    client = get_tencent_client()
+    word_request = models.WordEmbeddingRequest()
     '''
     The main purpose of this function is to accept an query, segment it into nouns, 
     gather embedding of these nouns and take the average. 
     calling jieba_seg, pku_seg all have some overhead where they need to build a dictionary 
     It's be best to keep this alive, and call as a function somehow
     '''
-
-    client = get_tencent_client()
-    word_request = models.WordEmbeddingRequest() 
-    pku_seg = pkuseg.pkuseg(postag=True)
-
+    time_stamp, _, query = query.partition('_')
+    identifier, _, query = query.partition('_')
+    
     temp_result = []
     # some words cannot get segmented, need more time to investigate specific cases 
     try:
         segment_list = list(filter(lambda item: item != ' ', jieba.lcut_for_search(query)))
     except: 
-        return [] 
+        return '-1'
 
     # get part of speech, vote for is_noun and is_chinese
     for word in segment_list:
@@ -67,7 +80,7 @@ def generate_vector(query):
         except:
             continue
     result_cleaned = list(filter(lambda item: item.is_n and item.is_cn, temp_result))
-
+    
     # fetch vector for each word
     vector_list = []
     for word_ins in result_cleaned: 
@@ -85,8 +98,21 @@ def generate_vector(query):
         vector_list.append(word_vector)
     
     query_vector = list(map(lambda item: round( sum(item)/len(item) , 5), zip(*vector_list)))
-    return query_vector
+    
+    redis_api.rpush(redis_queue, f'{time_stamp}_{identifier}_{query_vector}')
+    
+    return None 
 
+
+def main():
+    global redis_api, redis_queue
+    
+    with ThreadPoolExecutor(max_workers=5) as pool: 
+        while True:
+            query = redis_api.blpop(redis_queue, 0)[1]
+            pool.submit(generate_vector, query)
+        
+    
 
 if __name__ == '__main__':
-    print(generate_vector('显示器'))
+    main() 

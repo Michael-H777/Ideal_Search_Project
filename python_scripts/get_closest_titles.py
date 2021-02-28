@@ -33,5 +33,10 @@ def search_title(query, return_size=20):
             euclidean = distance([vector, vector_ins.vector])[0].sum() 
             title_distance.append((vector_ins.title, euclidean))
     title_distance.sort(key=lambda item: item[-1])
-
+    
     return title_distance[:return_size]
+
+
+if __name__ == '__main__':
+    [print(item) for item in search_title('显示器')]
+    

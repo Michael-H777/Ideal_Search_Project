@@ -1,4 +1,8 @@
 api_keys.txt
 items.csv
 .ipynb_checkpoints/*
+__pycache__/*
 tmp/*
+*.pyc
+*/title_vectors
+.gitignore
