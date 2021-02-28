@@ -18,10 +18,22 @@ import redis
 # multithreading 
 from concurrent.futures import ThreadPoolExecutor 
 
+# argparse 
+import argparse 
+
+parser = argparse.ArgumentParser(description='python script that takes input from Redis, process and push result back to Redis')
+parser.add_argument(name='-host', default='localhost', type=str, help='Redis host address')
+parser.add_argument(name='-port', default=6379 ,type=int, help='Redis port')
+parser.add_argument(name='-queue', default='task:prodcons:queue', type=str, help='Redis queue name')
+parser.add_argument(name='-pool', default=4, type=int, help='Thread pool size')
+
+args = parser.parse_args()
+
+
 pku_seg = pkuseg.pkuseg(postag=True)
 
-redis_api = redis.StrictRedis(host = 'localhost', port = 6379, db = 0, decode_responses = True)
-redis_queue = 'task:prodcons:queue'
+redis_api = redis.StrictRedis(host=args.host, port=args.port, db=0, decode_responses=True)
+redis_queue = args.queue
 
 class word_obj:
     
@@ -105,9 +117,9 @@ def generate_vector(query):
 
 
 def main():
-    global redis_api, redis_queue
+    global redis_api, redis_queue, args
     
-    with ThreadPoolExecutor(max_workers=5) as pool: 
+    with ThreadPoolExecutor(max_workers=args.pool) as pool: 
         while True:
             query = redis_api.blpop(redis_queue, 0)[1]
             pool.submit(generate_vector, query)
