@@ -111,7 +111,7 @@ def generate_vector(query):
     
     query_vector = list(map(lambda item: round( sum(item)/len(item) , 5), zip(*vector_list)))
     
-    redis_api.rpush(args.output_queue, f'{time_stamp}_{identifier}_{str(query_vector)}')
+    redis_api.lpush(f'{time_stamp}_{identifier}', str(query_vector) )
     print(f'processed {time_stamp}_{identifier}_{query}, value pushed into Redis')
     return None 
 
