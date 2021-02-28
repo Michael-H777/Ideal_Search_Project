@@ -24,7 +24,8 @@ import argparse
 parser = argparse.ArgumentParser(description='python script that takes input from Redis, process and push result back to Redis')
 parser.add_argument('-host', default='localhost', type=str, help='Redis host address')
 parser.add_argument('-port', default=6379 ,type=int, help='Redis port')
-parser.add_argument('-queue', default='task:prodcons:queue', type=str, help='Redis queue name')
+parser.add_argument('-input_queue', default='task:prodcons:input_queue', type=str, help='Redis input queue name')
+parser.add_argument('-output_queue', default='task:prodcons:output_queue', type=str, help='Redis output queue name')
 parser.add_argument('-pool', default=4, type=int, help='Thread pool size')
 
 args = parser.parse_args()
@@ -33,7 +34,6 @@ args = parser.parse_args()
 pku_seg = pkuseg.pkuseg(postag=True)
 
 redis_api = redis.StrictRedis(host=args.host, port=args.port, db=0, decode_responses=True)
-redis_queue = args.queue
 
 class word_obj:
     
@@ -63,7 +63,7 @@ def get_tencent_client():
 
 
 def generate_vector(query):
-    global pku_seg, redis_api, redis_queue
+    global pku_seg, redis_api, args
     client = get_tencent_client()
     word_request = models.WordEmbeddingRequest()
     '''
@@ -111,17 +111,18 @@ def generate_vector(query):
     
     query_vector = list(map(lambda item: round( sum(item)/len(item) , 5), zip(*vector_list)))
     
-    redis_api.rpush(redis_queue, f'{time_stamp}_{identifier}_{query_vector}')
+    redis_api.rpush(args.output_queue, f'{time_stamp}_{identifier}_{query_vector}')
     print(f'processed {time_stamp}_{identifier}_{query}, result pushed to redis')
     return None 
 
 
 def main():
-    global redis_api, redis_queue, args
+    global redis_api, args
     
     with ThreadPoolExecutor(max_workers=args.pool) as pool: 
+        print('thread pool initialized, waiting for input')
         while True:
-            query = redis_api.blpop(redis_queue, 0)[1]
+            query = redis_api.blpop(args.input_queue, 0)[1]
             pool.submit(generate_vector, query)
         
 
