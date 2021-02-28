@@ -112,7 +112,7 @@ def generate_vector(query):
     query_vector = list(map(lambda item: round( sum(item)/len(item) , 5), zip(*vector_list)))
     
     redis_api.rpush(redis_queue, f'{time_stamp}_{identifier}_{query_vector}')
-    
+    print(f'processed {time_stamp}_{identifier}_{query}, result pushed to redis')
     return None 
 
 
