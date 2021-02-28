@@ -22,10 +22,10 @@ from concurrent.futures import ThreadPoolExecutor
 import argparse 
 
 parser = argparse.ArgumentParser(description='python script that takes input from Redis, process and push result back to Redis')
-parser.add_argument(name='-host', default='localhost', type=str, help='Redis host address')
-parser.add_argument(name='-port', default=6379 ,type=int, help='Redis port')
-parser.add_argument(name='-queue', default='task:prodcons:queue', type=str, help='Redis queue name')
-parser.add_argument(name='-pool', default=4, type=int, help='Thread pool size')
+parser.add_argument('-host', default='localhost', type=str, help='Redis host address')
+parser.add_argument('-port', default=6379 ,type=int, help='Redis port')
+parser.add_argument('-queue', default='task:prodcons:queue', type=str, help='Redis queue name')
+parser.add_argument('-pool', default=4, type=int, help='Thread pool size')
 
 args = parser.parse_args()
 
